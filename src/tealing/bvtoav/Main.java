@@ -31,7 +31,8 @@ public class Main {
 		JLabel bvLabel = new JLabel("BV");
 		JLabel avLabel = new JLabel("AV");
 		JLabel info = new JLabel("<html><body>茶凌儿@bilibili YilTeaLing@github<br>软件版本：0.0.1 引用库：gson-2.8.6<br>此软件完全免费，如您在获取此软件时付费则为诈骗<br>数据仅由系统生成，由用户操作不当导致的一切后果与原作者无关");
-		JButton run = new JButton("转换");
+		JButton avBtn = new JButton("BV转AV");
+		JButton bvBtn = new JButton("AV转BV");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(null);
 		frame.setSize(310, 210);
@@ -40,13 +41,21 @@ public class Main {
 		bv.setBounds(30, 10, 100, 20);
 		avLabel.setBounds(10, 40, 20, 20);
 		av.setBounds(30, 40, 100, 20);
-		run.setBounds(140, 10, 60, 50);
+		avBtn.setBounds(140, 10, 70, 50);
+		bvBtn.setBounds(215, 10, 70, 50);
 		info.setBounds(10, 70, 280, 110);
 
-		run.addActionListener(new ActionListener() {
+		avBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				av.setText(getAV(bv.getText()));
+				av.setText(getData(bv.getText(), true));
+			}
+		});
+		
+		bvBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				bv.setText(getData(av.getText(), false));
 			}
 		});
 
@@ -54,7 +63,8 @@ public class Main {
 		frame.add(av);
 		frame.add(bvLabel);
 		frame.add(avLabel);
-		frame.add(run);
+		frame.add(avBtn);
+		frame.add(bvBtn);
 		frame.add(info);
 
 		frame.setResizable(false);
@@ -62,9 +72,15 @@ public class Main {
 		frame.setVisible(true);
 	}
 
-	public static String getAV(String bv) {
+	public static String getData(String id, boolean isBVtoAV) {
 		try {
-			URL url = new URL("https://api.bilibili.com/x/web-interface/view?bvid=" + bv);
+			URL url;
+			if (isBVtoAV) {
+				url = new URL("https://api.bilibili.com/x/web-interface/view?bvid=" + id);
+			}
+			else {
+				url = new URL("https://api.bilibili.com/x/web-interface/view?aid=" + id);
+			}
 			HttpURLConnection httpUrl = (HttpURLConnection) url.openConnection();
 			InputStream is = httpUrl.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is, "utf-8"));
@@ -79,7 +95,12 @@ public class Main {
 			is.close();
 			br.close();
 			JsonElement json = new JsonParser().parseString(sb.toString());
-			return json.getAsJsonObject().get("data").getAsJsonObject().get("aid").getAsString();
+			if (isBVtoAV) {
+				return json.getAsJsonObject().get("data").getAsJsonObject().get("aid").getAsString();
+			}
+			else {
+				return json.getAsJsonObject().get("data").getAsJsonObject().get("bvid").getAsString();
+			}
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(), e.getClass().getName(), JOptionPane.ERROR_MESSAGE);
 		}
